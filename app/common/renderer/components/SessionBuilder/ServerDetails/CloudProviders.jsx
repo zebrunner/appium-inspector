@@ -59,6 +59,7 @@ import ServerTabZebrunner from './ServerTabZebrunner.jsx';
 import styles from './ServerDetails.module.css';
 
 const providers = {
+/*
   [SERVER_TYPES.SAUCE]: {
     tab: ServerTabSauce,
     logos: {
@@ -199,6 +200,7 @@ const providers = {
       dark: null,
     },
   },
+*/
   [SERVER_TYPES.ZEBRUNNER]: {
     tab: ServerTabZebrunner,
     logos: {

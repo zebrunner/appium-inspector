@@ -22,6 +22,7 @@ import {TestingbotVendor} from './testingbot.js';
 import {TestMuAIVendor} from './testmuai.js';
 import {TvlabsVendor} from './tvlabs.js';
 import {WebmateVendor} from './webmate.js';
+import {ZebrunnerVendor} from './zebrunner.js';
 
 type VendorConstructor = new (server: SessionBuilderServer, sessionCaps: Record<string, unknown>) => BaseVendor;
 
@@ -48,4 +49,5 @@ export const VENDOR_MAP: Partial<Record<string, VendorConstructor>> = {
   [SERVER_TYPES.RABBITQA]: RabbitQAVendor,
   [SERVER_TYPES.ROBOTACTIONS]: RobotActionsVendor,
   [SERVER_TYPES.ASTROFARM]: AstrofarmVendor,
+  [SERVER_TYPES.ZEBRUNNER]: ZebrunnerVendor,
 };

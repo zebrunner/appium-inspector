@@ -38,6 +38,7 @@ export const SERVER_TYPES = {
   RABBITQA: 'rabbitqa',
   ROBOTACTIONS: 'robotactions',
   ASTROFARM: 'astrofarm',
+  ZEBRUNNER: 'zebrunner',
 };
 
 export const SAVED_SESSIONS_TABLE_VALUES = {
@@ -57,6 +58,7 @@ export const PROVIDER_VALUES = {
   TESTCRIBE_API_KEY: 'your-api-key',
   RABBITQA_API_KEY: 'your-api-key',
   ASTROFARM_URL: 'https://astrofarm-domain/d/appium/your-authentication-token',
+  ZEBRUNNER_URL: 'https://your-zebrunner-host/wd/hub',
 };
 
 export const ADD_CLOUD_PROVIDER_TAB_KEY = 'addCloudProvider';

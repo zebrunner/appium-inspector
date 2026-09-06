@@ -31,7 +31,8 @@ import TVLabsLogo from '../../../assets/images/tvlabs_logo.svg';
 import TVLabsLogoDark from '../../../assets/images/tvlabs_logo_dark.svg';
 import WebmateLogo from '../../../assets/images/webmate_logo.svg';
 import WebmateLogoDark from '../../../assets/images/webmate_logo_dark.svg';
-import ZebrunnerLogo from '../../../assets/images/zebrunner_logo.svg';
+import ZebrunnerLogoLight from '../../../assets/images/zebrunner_logo_light.svg';
+import ZebrunnerLogoDark from '../../../assets/images/zebrunner_logo_dark.svg';
 import {SERVER_TYPES} from '../../../constants/session-builder.js';
 import {useTheme} from '../../../hooks/use-theme.jsx';
 import ServerTabAstrofarm from './ServerTabAstroFarm.jsx';
@@ -204,8 +205,8 @@ const providers = {
   [SERVER_TYPES.ZEBRUNNER]: {
     tab: ServerTabZebrunner,
     logos: {
-      light: ZebrunnerLogo,
-      dark: ZebrunnerLogo,
+      light: ZebrunnerLogoLight,
+      dark: ZebrunnerLogoDark,
     },
   },
 };

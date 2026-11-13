@@ -4,6 +4,10 @@ export const SESSION_BUILDER_TABS = {
   ATTACH_TO_SESSION: 'attach',
 };
 
+// Below this window width, the JSON preview panel no longer has enough room
+// to sit beside the capability editor/saved sets panel, so it wraps below it instead.
+export const SESSION_BUILDER_NARROW_LAYOUT_BREAKPOINT = 800;
+
 export const SESSION_FILE_EXTENSION = '.appiumsession';
 
 export const SESSION_FILE_VERSIONS = {
@@ -40,8 +44,19 @@ export const SERVER_TYPES = {
   ASTROFARM: 'astrofarm',
 };
 
+// The Sauce Labs data centers offered in the server tab, in display order. Each value becomes
+// part of the ondemand hostname, so this list is also the allowlist the Sauce vendor validates
+// a session's data center against (see lib/vendor/saucelabs.ts) -- the single source for both
+// the UI options and that guard, so a new data center is added in one place.
+export const SAUCE_DATA_CENTERS = [
+  {value: 'us-west-1', labelKey: 'US-West'},
+  {value: 'us-east-4', labelKey: 'US-East'},
+  {value: 'eu-central-1', labelKey: 'EU-Central'},
+  {value: 'asia-south-2', labelKey: 'Asia-South'},
+];
+
 export const SAVED_SESSIONS_TABLE_VALUES = {
-  DATE_COLUMN_WIDTH: '25%',
+  DATE_COLUMN_WIDTH: '105px',
   ACTIONS_COLUMN_WIDTH: '124px',
 };
 

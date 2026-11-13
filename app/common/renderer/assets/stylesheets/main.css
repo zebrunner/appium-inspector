@@ -9,15 +9,6 @@ body {
   box-sizing: border-box;
 }
 
-body::-webkit-scrollbar {
-  width: 0px;
-  background: transparent;
-}
-
-body::-webkit-scrollbar-corner {
-  background: transparent;
-}
-
 #root,
 .ant-app,
 .ant-layout {
@@ -88,4 +79,9 @@ body::-webkit-scrollbar-corner {
 
 .ant-splitter-bar {
   margin: 6px;
+}
+
+/* All tables with row selection allow clicking on the row directly. */
+.ant-table-selection-column {
+  padding: 0px !important;
 }

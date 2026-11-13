@@ -5,19 +5,17 @@ hide:
 title: System Requirements
 ---
 
-Since the Inspector is released in [2 versions](../overview.md#formats), the requirements for these
+Since the Inspector is released in [2 formats](../overview.md#formats), the requirements for these
 will differ:
 
 - Desktop app
-    - Works on Windows 10+, macOS 12+, Ubuntu 18.04+, Debian 10+, openSUSE 15.5+, or Fedora Linux 39+
+    - Works on Windows 10+, macOS 13+, Ubuntu 18.04+, Debian 10+, openSUSE 15.5+, or Fedora Linux 39+
         - [These requirements are taken from Chrome](https://support.google.com/chrome/a/answer/7100626),
           as the Inspector is built using Electron (which uses Chromium)
     - Around **500MB** of free space is required
-    - The minimum application window size is **890 x 710** pixels
 - Appium server plugin
     - Works in Chrome/Edge/Firefox/Safari, released in 2022 or later
     - Around **6MB** of free space is required
-    - Viewport size of at least **870 x 610** pixels is recommended
 
 ### Appium Server Requirements
 
@@ -32,11 +30,11 @@ Refer to each driver's documentation for its specific requirements and setup ins
 
 For official drivers, the following versions are recommended for best compatibility:
 
-- [Espresso](https://github.com/appium/appium-espresso-driver): `4.0.0` or later
-- [Mac2](https://github.com/appium/appium-mac2-driver): `2.0.0` or later
-- [UiAutomator2](https://github.com/appium/appium-uiautomator2-driver): `4.0.0` or later
+- [Espresso](https://appium.github.io/appium-espresso-driver): `4.0.0` or later
+- [Mac2](https://appium.github.io/appium-mac2-driver): `2.0.0` or later
+- [UiAutomator2](https://appium.github.io/appium-uiautomator2-driver/): `4.0.0` or later
 - [Windows](https://github.com/appium/appium-windows-driver/): `4.0.0` or later
-- [XCUITest](https://appium.github.io/appium-xcuitest-driver/latest/): `4.21.27` or later
+- [XCUITest](https://appium.github.io/appium-xcuitest-driver/): `4.21.27` or later
 
 Continue with the [Installation](./installation.md) steps, or jump directly to
 [Starting a Session](./starting-a-session.md)!

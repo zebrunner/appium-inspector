@@ -1,5 +1,6 @@
 import refractorPython from 'refractor/python';
 
+import {LOCATOR_STRATEGIES} from '../../constants/session-inspector.js';
 import CommonClientFramework from './common.js';
 
 export default class PythonFramework extends CommonClientFramework {
@@ -8,7 +9,9 @@ export default class PythonFramework extends CommonClientFramework {
   static refractorLib = refractorPython;
 
   getPythonVal(jsonVal) {
-    if (typeof jsonVal === 'boolean') {
+    if (jsonVal === null) {
+      return 'None';
+    } else if (typeof jsonVal === 'boolean') {
       return jsonVal ? 'True' : 'False';
     } else if (Array.isArray(jsonVal)) {
       const convertedItems = jsonVal.map((item) => this.getPythonVal(item));
@@ -44,7 +47,7 @@ from selenium.webdriver.common.actions.pointer_input import PointerInput
 options = AppiumOptions()
 options.load_capabilities(${optionsStr})
 
-driver = webdriver.Remote("${this.serverUrl}", options=options)
+driver = webdriver.Remote(${this.quote(this.serverUrl)}, options=options)
 
 ${code}
 driver.quit()`;
@@ -55,25 +58,28 @@ driver.quit()`;
   }
 
   codeFor_findAndAssign(strategy, locator, localVar, isArray) {
-    let suffixMap = {
-      xpath: 'AppiumBy.XPATH',
-      'accessibility id': 'AppiumBy.ACCESSIBILITY_ID',
-      id: 'AppiumBy.ID',
-      'class name': 'AppiumBy.CLASS_NAME',
-      name: 'AppiumBy.NAME',
-      '-android uiautomator': 'AppiumBy.ANDROID_UIAUTOMATOR',
-      '-android datamatcher': 'AppiumBy.ANDROID_DATA_MATCHER',
-      '-android viewtag': 'AppiumBy.ANDROID_VIEWTAG',
-      '-ios predicate string': 'AppiumBy.IOS_PREDICATE',
-      '-ios class chain': 'AppiumBy.IOS_CLASS_CHAIN',
+    const byMap = {
+      [LOCATOR_STRATEGIES.ID]: 'ID',
+      [LOCATOR_STRATEGIES.XPATH]: 'XPATH',
+      [LOCATOR_STRATEGIES.NAME]: 'NAME',
+      [LOCATOR_STRATEGIES.CLASS_NAME]: 'CLASS_NAME',
+      [LOCATOR_STRATEGIES.ACCESSIBILITY_ID]: 'ACCESSIBILITY_ID',
+      [LOCATOR_STRATEGIES.PREDICATE]: 'IOS_PREDICATE',
+      [LOCATOR_STRATEGIES.CLASS_CHAIN]: 'IOS_CLASS_CHAIN',
+      [LOCATOR_STRATEGIES.UIAUTOMATOR]: 'ANDROID_UIAUTOMATOR',
+      // [LOCATOR_STRATEGIES.TEXT]: 'not supported',
+      [LOCATOR_STRATEGIES.VIEWTAG]: 'ANDROID_VIEWTAG',
+      [LOCATOR_STRATEGIES.DATAMATCHER]: 'ANDROID_DATA_MATCHER',
+      [LOCATOR_STRATEGIES.VIEWMATCHER]: 'ANDROID_VIEW_MATCHER',
+      // [LOCATOR_STRATEGIES.WIN_UIAUTOMATION]: 'not supported',
     };
-    if (!suffixMap[strategy]) {
+    if (!byMap[strategy]) {
       return this.handleUnsupportedLocatorStrategy(strategy, locator);
     }
     if (isArray) {
-      return `${localVar} = driver.find_elements(by=${suffixMap[strategy]}, value=${JSON.stringify(locator)})`;
+      return `${localVar} = driver.find_elements(by=AppiumBy.${byMap[strategy]}, value=${JSON.stringify(locator)})`;
     } else {
-      return `${localVar} = driver.find_element(by=${suffixMap[strategy]}, value=${JSON.stringify(locator)})`;
+      return `${localVar} = driver.find_element(by=AppiumBy.${byMap[strategy]}, value=${JSON.stringify(locator)})`;
     }
   }
 
@@ -116,11 +122,11 @@ actions.perform()
   // Top-Level Commands
 
   codeFor_executeScriptNoArgs(scriptCmd) {
-    return `driver.execute_script('${scriptCmd}')`;
+    return `driver.execute_script(${this.quote(scriptCmd)})`;
   }
 
   codeFor_executeScriptWithArgs(scriptCmd, jsonArg) {
-    return `driver.execute_script('${scriptCmd}', ${this.getPythonVal(jsonArg[0])})`;
+    return `driver.execute_script(${this.quote(scriptCmd)}, ${this.getPythonVal(jsonArg[0])})`;
   }
 
   codeFor_updateSettings(varNameIgnore, varIndexIgnore, settingsJson) {
@@ -166,7 +172,7 @@ actions.perform()
   }
 
   codeFor_getLogs(varNameIgnore, varIndexIgnore, logType) {
-    return `logs = driver.get_log('${logType}')`;
+    return `logs = driver.get_log(${this.quote(logType)})`;
   }
 
   // Context
@@ -180,7 +186,7 @@ actions.perform()
   }
 
   codeFor_switchAppiumContext(varNameIgnore, varIndexIgnore, name) {
-    return `driver.switch_to.context('${name}')`;
+    return `driver.switch_to.context(${this.quote(name)})`;
   }
 
   // Device Interaction
@@ -202,7 +208,7 @@ actions.perform()
   }
 
   codeFor_setOrientation(varNameIgnore, varIndexIgnore, orientation) {
-    return `driver.orientation = '${orientation}'`;
+    return `driver.orientation = ${this.quote(orientation)}`;
   }
 
   codeFor_getGeoLocation() {
@@ -220,47 +226,47 @@ actions.perform()
   // App Management
 
   codeFor_installApp(varNameIgnore, varIndexIgnore, app) {
-    return `driver.install_app('${app}')`;
+    return `driver.install_app(${this.quote(app)})`;
   }
 
   codeFor_isAppInstalled(varNameIgnore, varIndexIgnore, app) {
-    return `is_app_installed = driver.is_app_installed('${app}')`;
+    return `is_app_installed = driver.is_app_installed(${this.quote(app)})`;
   }
 
   codeFor_activateApp(varNameIgnore, varIndexIgnore, app) {
-    return `driver.activate_app('${app}')`;
+    return `driver.activate_app(${this.quote(app)})`;
   }
 
   codeFor_terminateApp(varNameIgnore, varIndexIgnore, app) {
-    return `driver.terminate_app('${app}')`;
+    return `driver.terminate_app(${this.quote(app)})`;
   }
 
   codeFor_removeApp(varNameIgnore, varIndexIgnore, app) {
-    return `driver.remove_app('${app}')`;
+    return `driver.remove_app(${this.quote(app)})`;
   }
 
   codeFor_queryAppState(varNameIgnore, varIndexIgnore, app) {
-    return `app_state = driver.query_app_state('${app}')`;
+    return `app_state = driver.query_app_state(${this.quote(app)})`;
   }
 
   // File Transfer
 
   codeFor_pushFile(varNameIgnore, varIndexIgnore, pathToInstallTo, fileContentString) {
-    return `driver.push_file('${pathToInstallTo}', '${fileContentString}')`;
+    return `driver.push_file(${this.quote(pathToInstallTo)}, ${this.quote(fileContentString)})`;
   }
 
   codeFor_pullFile(varNameIgnore, varIndexIgnore, pathToPullFrom) {
-    return `file_base64 = driver.pull_file('${pathToPullFrom}')`;
+    return `file_base64 = driver.pull_file(${this.quote(pathToPullFrom)})`;
   }
 
   codeFor_pullFolder(varNameIgnore, varIndexIgnore, folderToPullFrom) {
-    return `folder_base64 = driver.pull_folder('${folderToPullFrom}')`;
+    return `folder_base64 = driver.pull_folder(${this.quote(folderToPullFrom)})`;
   }
 
   // Web
 
   codeFor_navigateTo(varNameIgnore, varIndexIgnore, url) {
-    return `driver.get('${url}')`;
+    return `driver.get(${this.quote(url)})`;
   }
 
   codeFor_getUrl() {
@@ -292,7 +298,7 @@ actions.perform()
   }
 
   codeFor_switchToWindow(varNameIgnore, varIndexIgnore, handle) {
-    return `driver.switch_to.window('${handle}')`;
+    return `driver.switch_to.window(${this.quote(handle)})`;
   }
 
   codeFor_getWindowHandles() {

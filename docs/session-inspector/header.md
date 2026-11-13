@@ -2,29 +2,44 @@
 title: Header
 ---
 
-The header of the Session Inspector contains various buttons that are key to interacting with the
+The header of the Session Inspector contains various items that are key to interacting with the
 device itself, or the [application source](./source.md).
 
 ![Inspector Header](./assets/images/header/app-header.png)
 
-## Device System Buttons
+## Device System Controls
 
-If using the Inspector with an Android or iOS device, the first button group in the header will be
-the system buttons, which simulate the equivalent Android or iOS system functionality:
+If using the Inspector with the XCUITest, UiAutomator2 or Espresso drivers, the first item group
+in the header provides functionality specific to the device under test. The available items
+generally correspond to a hardware button on an Android, iOS, iPadOS, tvOS or watchOS device:
 
-![Android Buttons](./assets/images/header/system-buttons-android.png) ![iOS Buttons](./assets/images/header/system-buttons-ios.png)
+![Android Buttons](./assets/images/header/system-buttons-android.png) ![XCUITest Buttons](./assets/images/header/system-buttons-xcuitest.png)
 
 - Android: back / home / app switcher
-- iOS: home / Siri
+- iOS/iPadOS/tvOS: buttons dropdown / Siri
+    - The buttons listed in the dropdown correspond to values returned by the XCUITest driver's
+      [`mobile: getPressableButtons`](https://appium.github.io/appium-xcuitest-driver/latest/reference/execute-methods/#mobile-getpressablebuttons) execute method
     - The Siri button will open a prompt for input text, which will be used as the Siri command.
       Please note that the command will not work if Siri is disabled.
+- watchOS: buttons dropdown / Digital Crown rotation / gestures dropdown / Siri
+    - Digital Crown rotation is based on the XCUITest driver's 
+      [`mobile: rotateDigitalCrown`](https://appium.github.io/appium-xcuitest-driver/latest/reference/execute-methods/#mobile-rotatedigitalcrown) execute method
+    - Gestures listed in the dropdown correspond to values supported by the XCUITest driver's
+      [`mobile: performHandGesture`](https://appium.github.io/appium-xcuitest-driver/latest/reference/execute-methods/#mobile-performhandgesture) execute method
 
-## Display Switcher
+## Driver-Specific Controls
+
+Certain header items correspond to driver-specific functionality, and are only shown in a session
+for that driver.
+
+### Display Switcher
 
 !!! note
 
-    This functionality is only supported for the UiAutomator2 driver `6.6.0`+, on devices
-    running Android 11 or newer.
+    This functionality is only supported for:
+
+    * UiAutomator2 driver `6.6.0`+ sessions on devices running Android 11 or newer
+    * XCUITest driver `12.17.0`+ sessions with `platformName: iOS`
 
 ![Multi-Display Button](./assets/images/header/multi-display-button.png)
 
@@ -36,11 +51,50 @@ created, listing all discovered displays.
 
 Selecting a different display in the dropdown will automatically switch the screenshot and app
 source to those of the new display. Most screenshot and element interactions will work as normal,
-though some functionality will still only target the default display (such as device system buttons
-and MJPEG screenshot stream).
+though depending on the driver, some functionality may still only target the default display (such
+as device system buttons and MJPEG screenshot stream).
 
 Pressing the multi-display button while multi-display mode is active will switch to the default
 display and hide the dropdown.
+
+### Window Switcher
+
+!!! note
+
+    This functionality is only supported for the UiAutomator2 driver.
+
+![Window Switcher Button](./assets/images/header/window-switcher-button.png)
+
+The window switcher allows changing the strategy for determining the active application window.
+Pressing the button will reveal a new dropdown with 3 options.
+
+![Window Switcher Dropdown](./assets/images/header/window-switcher-dropdown.png)
+
+- Focused Window: the default strategy used by the driver
+- Top-Most Window: this strategy selects the window with the highest Z-order as the active one. The
+  top-most window is often the same as the focused window, but may be different for multi-window
+  apps, or devices with multiple displays. This strategy corresponds to the
+  `enableTopmostWindowFromActivePackage` driver setting being set to `true`.
+- All Windows: this strategy includes all accessible windows in the page source. It corresponds to the
+  `enableMultiWindows` driver setting being set to `true`.
+
+Refer to the [UiAutomator2 Multi-Window Testing guide](https://appium.github.io/appium-uiautomator2-driver/latest/guides/multiwindow/)
+for more information.
+
+Pressing the window switcher button while the dropdown is visible will revert to the default
+focused window strategy and hide the dropdown.
+
+### Subdriver Buttons
+
+!!! note
+
+    This functionality is only supported for the Espresso driver.
+
+![Subdriver Buttons](./assets/images/header/subdriver-buttons.png)
+
+The subdriver buttons allow changing the currently active subdriver. Refer to the
+[Espresso driver documentation](https://appium.github.io/appium-espresso-driver/latest/reference/settings/#driver)
+for more details.
 
 ## Context Switcher
 
@@ -90,14 +144,16 @@ some time to retrieve, disabling its retrieval allows for more seamless device i
 ![Refresh Button](./assets/images/header/refresh-button.png)
 
 This button triggers a manual refresh of the application screenshot and source, thereby retrieving
-the latest data.
+the latest data. It can also be triggered using the _Ctrl+Shift+R_ keyboard shortcut.
 
 ## Search for Element
 
 ![Search Button](./assets/images/header/search-button.png)
 
 This button opens a new modal window, which can be used to search for elements within the current
-application XML source. Searching requires providing the element details:
+application XML source. The modal can also be opened using the _Ctrl+Shift+F_ keyboard shortcut.
+
+Searching requires providing the element details:
 
 ![Element Search Window](./assets/images/header/search-inputs.png)
 
@@ -105,34 +161,41 @@ There is a choice of multiple locator strategies that can be used during search.
 support different locator strategies, and the Inspector will try to hide strategies that are not
 supported by the current driver.
 
-After selecting the locator strategy, entering the selector string, and pressing _Search_, the
-results screen is shown.
+It is also possible to specify the search details using the search history. The Inspector saves up
+to 20 most recent search queries across sessions, and the full list can be toggled using the
+history button in the bottom left corner:
 
-If one or more elements are found, the Inspector will list the element count, time taken, and a
-list of selectable element IDs:
+![Element Search History](./assets/images/header/search-history.png)
+
+Clicking on any recorded entry changes the current locator strategy and selector to those of the
+selected entry. A separate button can also be used to clear the history.
+
+Once the locator strategy and selector string are specified, clicking the search button starts the
+element lookup, after which the results screen is shown. If one or more elements are found, the
+Inspector will list the element count, time taken, and a list of selectable element IDs:
 
 ![Element Search Results](./assets/images/header/search-results.png)
 
-Selecting any element enables the element action buttons:
+Selecting any element enables the element action items:
 
-| Icon                                                                                     | Description                                                                                                         |
-| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| ![Reveal Element in Source](./assets/images/header/search-reveal-element.png)            | Attempt to select the element in the application source. Note that this may not work if the element ID has changed. |
-| ![Tap Element](./assets/images/header/search-tap-element.png)                            | Tap the element                                                                                                     |
-| ![Send or Clear Element Text](./assets/images/header/search-send-clear-element-text.png) | Enter text to send to the element, or clear its text                                                                |
+| Item | Description |
+| --- | --- |
+| ![Reveal Element in Source](./assets/images/header/search-reveal-element.png) | Attempt to select the element in the application source. Note that this may not work if the element ID has changed. |
+| ![Tap Element](./assets/images/header/search-tap-element.png) | Tap the element |
+| ![Send or Clear Element Text](./assets/images/header/search-send-clear-element-text.png) | Enter text to send to the element, or clear its text |
 
 ## Toggle Recorder
 
 ![Start Recording Button](./assets/images/header/record-start-button.png) ![Stop Recording Button](./assets/images/header/record-stop-button.png)
 
 This button allows to enable or disable recording of various user interactions with the application,
-and translate them into code that can be used with various [Appium clients](https://appium.io/docs/en/latest/ecosystem/clients/).
+and translate them into code that can be used with various [Appium clients](https://appium.io/docs/en/latest/ecosystem/clients/). Recording can also be toggled using the _Ctrl+Shift+V_ keyboard shortcut.
 
 Interactions that can be recorded include:
 
 - Actions for a specific element (tap/send keys/clear)
 - Generic tap/swipe actions on the application screenshot
-- [Mobile device system actions](#device-system-buttons)
+- [Mobile device system actions](#device-system-controls)
 - [Driver commands](./commands.md)
 
 !!! note

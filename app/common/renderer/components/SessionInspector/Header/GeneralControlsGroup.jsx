@@ -10,18 +10,22 @@ import LocatorSearchModal from './LocatorSearch/LocatorSearchModal.jsx';
  */
 const ToggleAutomaticRefreshButton = ({isSourceRefreshOn, setRefreshingState}) => {
   const {t} = useTranslation();
+  const pauseRefreshLabel = t('Pause Refreshing Source');
+  const startRefreshLabel = t('Start Refreshing Source');
 
   return isSourceRefreshOn ? (
-    <Tooltip title={t('Pause Refreshing Source')}>
+    <Tooltip title={pauseRefreshLabel}>
       <Button
+        aria-label={pauseRefreshLabel}
         id="btnPauseRefreshing"
         icon={<IconPlayerPause size={18} />}
         onClick={() => setRefreshingState({source: false})}
       />
     </Tooltip>
   ) : (
-    <Tooltip title={t('Start Refreshing Source')}>
+    <Tooltip title={startRefreshLabel}>
       <Button
+        aria-label={startRefreshLabel}
         id="btnStartRefreshing"
         icon={<IconPlayerPlay size={18} />}
         onClick={() => setRefreshingState({source: true})}
@@ -35,10 +39,13 @@ const ToggleAutomaticRefreshButton = ({isSourceRefreshOn, setRefreshingState}) =
  */
 const ManualRefreshButton = ({applyClientMethod}) => {
   const {t} = useTranslation();
+  const refreshLabel = t('refreshSource');
 
   return (
-    <Tooltip title={t('refreshSource')}>
+    <Tooltip title={`${refreshLabel} (Ctrl+Shift+R)`}>
       <Button
+        aria-label={refreshLabel}
+        aria-keyshortcuts="Control+Shift+R"
         id="btnReload"
         icon={<IconRefresh size={18} />}
         onClick={() => applyClientMethod({methodName: 'getPageSource'})}
@@ -53,11 +60,18 @@ const ManualRefreshButton = ({applyClientMethod}) => {
 const SearchForElementButton = (props) => {
   const {showLocatorSearchModal} = props;
   const {t} = useTranslation();
+  const searchLabel = t('Search for element');
 
   return (
     <>
-      <Tooltip title={t('Search for element')}>
-        <Button id="searchForElement" icon={<IconSearch size={18} />} onClick={showLocatorSearchModal} />
+      <Tooltip title={`${searchLabel} (Ctrl+Shift+F)`}>
+        <Button
+          aria-label={searchLabel}
+          aria-keyshortcuts="Control+Shift+F"
+          id="searchForElement"
+          icon={<IconSearch size={18} />}
+          onClick={showLocatorSearchModal}
+        />
       </Tooltip>
       <LocatorSearchModal {...props} />
     </>
@@ -69,14 +83,30 @@ const SearchForElementButton = (props) => {
  */
 const ToggleRecordingButton = ({isRecording, startRecording, pauseRecording}) => {
   const {t} = useTranslation();
+  const pauseLabel = t('Pause Recording');
+  const startLabel = t('Start Recording');
 
   return isRecording ? (
-    <Tooltip title={t('Pause Recording')}>
-      <Button id="btnPause" icon={<IconVideo size={18} />} type={BUTTON.PRIMARY} danger onClick={pauseRecording} />
+    <Tooltip title={`${pauseLabel} (Ctrl+Shift+V)`}>
+      <Button
+        aria-label={pauseLabel}
+        aria-keyshortcuts="Control+Shift+V"
+        id="btnPause"
+        icon={<IconVideo size={18} />}
+        type={BUTTON.PRIMARY}
+        danger
+        onClick={pauseRecording}
+      />
     </Tooltip>
   ) : (
-    <Tooltip title={t('Start Recording')}>
-      <Button id="btnStartRecording" icon={<IconVideo size={18} />} onClick={startRecording} />
+    <Tooltip title={`${startLabel} (Ctrl+Shift+V)`}>
+      <Button
+        aria-label={startLabel}
+        aria-keyshortcuts="Control+Shift+V"
+        id="btnStartRecording"
+        icon={<IconVideo size={18} />}
+        onClick={startRecording}
+      />
     </Tooltip>
   );
 };
@@ -94,6 +124,7 @@ const GeneralControlsGroup = (props) => {
     startRecording,
     pauseRecording,
   } = props;
+
   return (
     <Space.Compact>
       {isUsingMjpegMode && (

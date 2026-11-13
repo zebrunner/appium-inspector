@@ -10,6 +10,7 @@ import {
 } from '../../../constants/session-builder.js';
 import FileUploader from '../../FileUploader.jsx';
 import CapabilityJSON from '../CapabilityJSON/CapabilityJSON.jsx';
+import CapabilityTemplates from './CapabilityTemplates.jsx';
 
 import styles from './SavedCapabilitySets.module.css';
 
@@ -35,6 +36,7 @@ const getSessionById = (savedSessions, id, t) => {
 
 const SavedCapabilitySets = (props) => {
   const {
+    isNarrow,
     savedSessions,
     exportSavedSession,
     deleteSavedSession,
@@ -42,9 +44,13 @@ const SavedCapabilitySets = (props) => {
     switchTabs,
     importSessionFiles,
     isUploadingSessionFiles,
+    loadCapabilityTemplate,
   } = props;
 
   const {t} = useTranslation();
+  const editLabel = t('Edit');
+  const deleteLabel = t('Delete');
+  const exportLabel = t('Export to File');
 
   const handleCapsAndServer = (uuid) => {
     const {
@@ -100,8 +106,9 @@ const SavedCapabilitySets = (props) => {
       width: SAVED_SESSIONS_TABLE_VALUES.ACTIONS_COLUMN_WIDTH,
       render: (_, record) => (
         <Space.Compact>
-          <Tooltip zIndex={3} title={t('Edit')}>
+          <Tooltip zIndex={3} title={editLabel}>
             <Button
+              aria-label={editLabel}
               icon={<IconEdit size={18} />}
               onClick={() => {
                 handleCapsAndServer(record.key);
@@ -109,10 +116,14 @@ const SavedCapabilitySets = (props) => {
               }}
             />
           </Tooltip>
-          <Tooltip zIndex={3} title={t('Export to File')}>
-            <Button icon={<IconFileExport size={18} />} onClick={() => findAndExportSavedSession(record.key)} />
+          <Tooltip zIndex={3} title={exportLabel}>
+            <Button
+              aria-label={exportLabel}
+              icon={<IconFileExport size={18} />}
+              onClick={() => findAndExportSavedSession(record.key)}
+            />
           </Tooltip>
-          <Tooltip zIndex={3} title={t('Delete')}>
+          <Tooltip zIndex={3} title={deleteLabel}>
             <Popconfirm
               zIndex={4}
               title={t('confirmDeletion')}
@@ -120,7 +131,7 @@ const SavedCapabilitySets = (props) => {
               cancelText={t('Cancel')}
               onConfirm={() => deleteSavedSession(record.key)}
             >
-              <Button icon={<IconTrash size={18} />} />
+              <Button aria-label={deleteLabel} icon={<IconTrash size={18} />} />
             </Popconfirm>
           </Tooltip>
         </Space.Compact>
@@ -129,8 +140,8 @@ const SavedCapabilitySets = (props) => {
   ];
 
   return (
-    <Splitter>
-      <Splitter.Panel min={430}>
+    <Splitter orientation={isNarrow ? 'vertical' : 'horizontal'}>
+      <Splitter.Panel min={isNarrow ? 150 : 400}>
         <Spin spinning={isUploadingSessionFiles}>
           <Card styles={{root: {height: '100%'}, body: {height: '100%', padding: '2px'}}}>
             <Table
@@ -140,10 +151,9 @@ const SavedCapabilitySets = (props) => {
                 header: {cell: {padding: '8px 16px'}},
                 section: {height: 'calc(100% - 48px)'},
                 body: {cell: {padding: '8px 16px'}},
-                footer: {padding: '8px 16px'},
+                footer: {padding: '8px 8px', borderTop: '1px solid var(--ant-table-border-color)', display: 'flex'},
               }}
               pagination={false}
-              sticky={true}
               dataSource={dataSource(savedSessions, t)}
               columns={columns}
               onRow={(row) => ({onClick: () => handleCapsAndServer(row.key)})}
@@ -155,18 +165,21 @@ const SavedCapabilitySets = (props) => {
               }}
               scroll={{y: 'calc(100% - 37px)'}}
               footer={() => (
-                <FileUploader
-                  title={t('Import from File')}
-                  onUpload={importSessionFiles}
-                  multiple={true}
-                  type={SESSION_FILE_EXTENSION}
-                />
+                <Space.Compact style={{overflowX: 'scroll'}}>
+                  <FileUploader
+                    title={t('Import from File')}
+                    onUpload={importSessionFiles}
+                    multiple={true}
+                    type={SESSION_FILE_EXTENSION}
+                  />
+                  <CapabilityTemplates loadCapabilityTemplate={loadCapabilityTemplate} />
+                </Space.Compact>
               )}
             />
           </Card>
         </Spin>
       </Splitter.Panel>
-      <Splitter.Panel collapsible min={400}>
+      <Splitter.Panel collapsible min={isNarrow ? 150 : 400}>
         <CapabilityJSON {...props} title={capsUUID ? getSessionById(savedSessions, capsUUID, t).name : null} />
       </Splitter.Panel>
     </Splitter>

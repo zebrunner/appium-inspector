@@ -73,7 +73,7 @@ export const PROVIDER_VALUES = {
   TESTCRIBE_API_KEY: 'your-api-key',
   RABBITQA_API_KEY: 'your-api-key',
   ASTROFARM_URL: 'https://astrofarm-domain/d/appium/your-authentication-token',
-  ZEBRUNNER_URL: 'https://your-zebrunner-host/wd/hub',
+  ZEBRUNNER_URL: 'https://your-mcloud-host/mcloud/wd/hub',
 };
 
 export const ADD_CLOUD_PROVIDER_TAB_KEY = 'addCloudProvider';

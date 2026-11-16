@@ -1,5 +1,6 @@
 import refractorJs from 'refractor/javascript';
 
+import {LOCATOR_STRATEGIES} from '../../constants/session-inspector.js';
 import CommonClientFramework from './common.js';
 
 export default class JsWdIoFramework extends CommonClientFramework {
@@ -19,10 +20,10 @@ import {remote} from 'webdriverio';
 async function main () {
   const caps = ${JSON.stringify(this.caps, null, 2)}
   const driver = await remote({
-    protocol: "${this.serverUrlParts.protocol}",
-    hostname: "${this.serverUrlParts.host}",
+    protocol: ${this.quote(this.serverUrlParts.protocol)},
+    hostname: ${this.quote(this.serverUrlParts.host)},
     port: ${this.serverUrlParts.port},
-    path: "${this.serverUrlParts.path}",
+    path: ${this.quote(this.serverUrlParts.path)},
     capabilities: caps
   });
 ${this.indent(code, 2)}
@@ -39,16 +40,19 @@ main().catch(console.log);`;
   codeFor_findAndAssign(strategy, locator, localVar, isArray) {
     // wdio allows to specify strategy as a locator prefix
     const validStrategies = [
-      'xpath',
-      'accessibility id',
-      'id',
-      'class name',
-      'name',
-      '-android uiautomator',
-      '-android datamatcher',
-      '-android viewtag',
-      '-ios predicate string',
-      '-ios class chain',
+      LOCATOR_STRATEGIES.ID,
+      LOCATOR_STRATEGIES.XPATH,
+      LOCATOR_STRATEGIES.NAME,
+      LOCATOR_STRATEGIES.CLASS_NAME,
+      LOCATOR_STRATEGIES.ACCESSIBILITY_ID,
+      LOCATOR_STRATEGIES.PREDICATE,
+      LOCATOR_STRATEGIES.CLASS_CHAIN,
+      LOCATOR_STRATEGIES.UIAUTOMATOR,
+      // LOCATOR_STRATEGIES.TEXT,
+      LOCATOR_STRATEGIES.VIEWTAG,
+      LOCATOR_STRATEGIES.DATAMATCHER,
+      LOCATOR_STRATEGIES.VIEWMATCHER,
+      // LOCATOR_STRATEGIES.WIN_UIAUTOMATION,
     ];
     if (!validStrategies.includes(strategy)) {
       return this.handleUnsupportedLocatorStrategy(strategy, locator);
@@ -147,7 +151,7 @@ main().catch(console.log);`;
   }
 
   codeFor_getLogs(varNameIgnore, varIndexIgnore, logType) {
-    return `let logs = await driver.getLogs("${logType}");`;
+    return `let logs = await driver.getLogs(${this.quote(logType)});`;
   }
 
   // Context
@@ -161,7 +165,7 @@ main().catch(console.log);`;
   }
 
   codeFor_switchAppiumContext(varNameIgnore, varIndexIgnore, name) {
-    return `await driver.switchAppiumContext("${name}");`;
+    return `await driver.switchAppiumContext(${this.quote(name)});`;
   }
 
   // Device Interaction
@@ -183,7 +187,7 @@ main().catch(console.log);`;
   }
 
   codeFor_setOrientation(varNameIgnore, varIndexIgnore, orientation) {
-    return `await driver.setOrientation("${orientation}");`;
+    return `await driver.setOrientation(${this.quote(orientation)});`;
   }
 
   codeFor_getGeoLocation() {
@@ -201,47 +205,47 @@ main().catch(console.log);`;
   // App Management
 
   codeFor_installApp(varNameIgnore, varIndexIgnore, app) {
-    return `await driver.installApp("${app}");`;
+    return `await driver.installApp(${this.quote(app)});`;
   }
 
   codeFor_isAppInstalled(varNameIgnore, varIndexIgnore, app) {
-    return `let isAppInstalled = await driver.isAppInstalled("${app}");`;
+    return `let isAppInstalled = await driver.isAppInstalled(${this.quote(app)});`;
   }
 
   codeFor_activateApp(varNameIgnore, varIndexIgnore, app) {
-    return `await driver.activateApp("${app}");`;
+    return `await driver.activateApp(${this.quote(app)});`;
   }
 
   codeFor_terminateApp(varNameIgnore, varIndexIgnore, app) {
-    return `await driver.terminateApp("${app}");`;
+    return `await driver.terminateApp(${this.quote(app)});`;
   }
 
   codeFor_removeApp(varNameIgnore, varIndexIgnore, app) {
-    return `await driver.removeApp("${app}")`;
+    return `await driver.removeApp(${this.quote(app)})`;
   }
 
   codeFor_queryAppState(varNameIgnore, varIndexIgnore, app) {
-    return `let appState = await driver.queryAppState("${app}");`;
+    return `let appState = await driver.queryAppState(${this.quote(app)});`;
   }
 
   // File Transfer
 
   codeFor_pushFile(varNameIgnore, varIndexIgnore, pathToInstallTo, fileContentString) {
-    return `await driver.pushFile("${pathToInstallTo}", "${fileContentString}");`;
+    return `await driver.pushFile(${this.quote(pathToInstallTo)}, ${this.quote(fileContentString)});`;
   }
 
   codeFor_pullFile(varNameIgnore, varIndexIgnore, pathToPullFrom) {
-    return `let fileBase64 = await driver.pullFile("${pathToPullFrom}");`;
+    return `let fileBase64 = await driver.pullFile(${this.quote(pathToPullFrom)});`;
   }
 
   codeFor_pullFolder(varNameIgnore, varIndexIgnore, folderToPullFrom) {
-    return `let folderBase64 = await driver.pullFolder("${folderToPullFrom}");`;
+    return `let folderBase64 = await driver.pullFolder(${this.quote(folderToPullFrom)});`;
   }
 
   // Web
 
   codeFor_navigateTo(varNameIgnore, varIndexIgnore, url) {
-    return `await driver.navigateTo('${url}');`;
+    return `await driver.navigateTo(${this.quote(url)});`;
   }
 
   codeFor_getUrl() {
@@ -273,7 +277,7 @@ main().catch(console.log);`;
   }
 
   codeFor_switchToWindow(varNameIgnore, varIndexIgnore, handle) {
-    return `await driver.switchToWindow("${handle}");`;
+    return `await driver.switchToWindow(${this.quote(handle)});`;
   }
 
   codeFor_getWindowHandles() {
@@ -281,6 +285,6 @@ main().catch(console.log);`;
   }
 
   codeFor_createWindow(varNameIgnore, varIndexIgnore, type) {
-    return `let newWindow = await driver.createWindow("${type}");`;
+    return `let newWindow = await driver.createWindow(${this.quote(type)});`;
   }
 }

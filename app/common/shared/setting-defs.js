@@ -11,6 +11,22 @@ export const SESSION_SERVER_PARAMS = 'SESSION_SERVER_PARAMS';
 export const SESSION_SERVER_TYPE = 'SESSION_SERVER_TYPE';
 export const SAVED_CLIENT_FRAMEWORK = 'SAVED_FRAMEWORK';
 export const VISIBLE_PROVIDERS = 'VISIBLE_PROVIDERS';
+export const IMPORTANT_SOURCE_ATTRIBUTES = 'IMPORTANT_SOURCE_ATTRIBUTES';
+export const SOURCE_EXPANSION_DEPTH = 'SOURCE_EXPANSION_DEPTH';
+export const LOCATOR_SEARCH_HISTORY = 'LOCATOR_SEARCH_HISTORY';
+
+// Attributes which are listed in the source by default
+export const IMPORTANT_SOURCE_ATTRS = [
+  'AXDescription',
+  'AXIdentifier',
+  'content-desc',
+  'id',
+  'label',
+  'name',
+  'resource-id',
+  'text',
+  'value',
+];
 
 export const DEFAULT_SETTINGS = {
   [PREFERRED_LANGUAGE]: fallbackLng,
@@ -22,4 +38,7 @@ export const DEFAULT_SETTINGS = {
   [SESSION_SERVER_TYPE]: null,
   [SAVED_CLIENT_FRAMEWORK]: 'java',
   [VISIBLE_PROVIDERS]: null,
+  [IMPORTANT_SOURCE_ATTRIBUTES]: IMPORTANT_SOURCE_ATTRS,
+  [SOURCE_EXPANSION_DEPTH]: 1,
+  [LOCATOR_SEARCH_HISTORY]: [],
 };

@@ -1,13 +1,13 @@
-import {Alert, Button, Input, Row, Space} from 'antd';
+import {Alert, Button, Input, Row, Space, Table} from 'antd';
 import {useTranslation} from 'react-i18next';
 
 import {ALERT, BUTTON} from '../../../../constants/antd-types.js';
 import {DRIVERS} from '../../../../constants/common.js';
 import {
   NATIVE_APP,
-  NATIVE_COMMON_LOCATOR_STRATEGY_MAP,
-  NATIVE_DRIVER_LOCATOR_STRATEGY_MAP,
-  WEB_LOCATOR_STRATEGY_MAP,
+  NATIVE_COMMON_LOCATOR_STRATEGY_MAP as COMMON_STRATEGIES,
+  NATIVE_DRIVER_LOCATOR_STRATEGY_MAP as DRIVER_STRATEGIES,
+  WEB_LOCATOR_STRATEGY_MAP as WEB_STRATEGIES,
 } from '../../../../constants/session-inspector.js';
 
 import inspectorStyles from '../../SessionInspector.module.css';
@@ -15,19 +15,27 @@ import styles from './LocatorSearch.module.css';
 
 const locatorStrategies = (automationName, currentContext) => {
   if (currentContext && currentContext !== NATIVE_APP) {
-    return Object.values(WEB_LOCATOR_STRATEGY_MAP);
+    return Object.values(WEB_STRATEGIES);
   }
-  const strategies = Object.values(NATIVE_COMMON_LOCATOR_STRATEGY_MAP);
+  const strategies = Object.values(COMMON_STRATEGIES);
   switch (automationName) {
     case DRIVERS.XCUITEST:
     case DRIVERS.MAC2:
-      strategies.push(NATIVE_DRIVER_LOCATOR_STRATEGY_MAP.PREDICATE, NATIVE_DRIVER_LOCATOR_STRATEGY_MAP.CLASS_CHAIN);
-      break;
-    case DRIVERS.ESPRESSO:
-      strategies.push(NATIVE_DRIVER_LOCATOR_STRATEGY_MAP.DATAMATCHER, NATIVE_DRIVER_LOCATOR_STRATEGY_MAP.VIEWTAG);
+      strategies.push(DRIVER_STRATEGIES.PREDICATE, DRIVER_STRATEGIES.CLASS_CHAIN);
       break;
     case DRIVERS.UIAUTOMATOR2:
-      strategies.push(NATIVE_DRIVER_LOCATOR_STRATEGY_MAP.UIAUTOMATOR);
+      strategies.push(DRIVER_STRATEGIES.UIAUTOMATOR);
+      break;
+    case DRIVERS.ESPRESSO:
+      strategies.push(
+        DRIVER_STRATEGIES.TEXT,
+        DRIVER_STRATEGIES.DATAMATCHER,
+        DRIVER_STRATEGIES.VIEWMATCHER,
+        DRIVER_STRATEGIES.VIEWTAG,
+      );
+      break;
+    case DRIVERS.WINCORE:
+      strategies.push(DRIVER_STRATEGIES.WIN_UIAUTOMATION);
       break;
   }
   return strategies;
@@ -80,6 +88,51 @@ const LocatorSearchFormValueInputField = ({locatorSearchValue, setLocatorSearchV
 );
 
 /**
+ * Table listing previous locator strategy and selector searches.
+ */
+const LocatorSearchFormHistoryTable = ({
+  searchHistory,
+  locatorSearchStrategy,
+  locatorSearchValue,
+  setLocatorSearchStrategy,
+  setLocatorSearchValue,
+}) => {
+  const selectedKey = JSON.stringify([locatorSearchStrategy, locatorSearchValue]);
+  const columns = [
+    {
+      dataIndex: 'strategy',
+    },
+    {
+      dataIndex: 'selector',
+    },
+  ];
+
+  return (
+    <Row>
+      <Table
+        pagination={false}
+        className={styles.searchResultsList}
+        dataSource={searchHistory}
+        columns={columns}
+        showHeader={false}
+        onRow={(row) => ({
+          onClick: () => {
+            setLocatorSearchStrategy(row.strategy);
+            setLocatorSearchValue(row.selector);
+          },
+        })}
+        rowSelection={{
+          selectedRowKeys: [selectedKey],
+          hideSelectAll: true,
+          columnWidth: 0,
+          renderCell: () => null,
+        }}
+      />
+    </Row>
+  );
+};
+
+/**
  * Input form for locator search related data.
  */
 const LocatorSearchForm = ({
@@ -89,6 +142,8 @@ const LocatorSearchForm = ({
   locatorSearchStrategy,
   automationName,
   currentContext,
+  searchHistory,
+  showSearchHistory,
 }) => {
   const {t} = useTranslation();
 
@@ -107,6 +162,18 @@ const LocatorSearchForm = ({
         locatorSearchValue={locatorSearchValue}
         setLocatorSearchValue={setLocatorSearchValue}
       />
+      {showSearchHistory && (
+        <>
+          {t('searchHistory')}
+          <LocatorSearchFormHistoryTable
+            searchHistory={searchHistory}
+            locatorSearchStrategy={locatorSearchStrategy}
+            locatorSearchValue={locatorSearchValue}
+            setLocatorSearchStrategy={setLocatorSearchStrategy}
+            setLocatorSearchValue={setLocatorSearchValue}
+          />
+        </>
+      )}
     </Space>
   );
 };

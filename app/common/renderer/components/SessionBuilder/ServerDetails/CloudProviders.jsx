@@ -31,8 +31,8 @@ import TVLabsLogo from '../../../assets/images/tvlabs_logo.svg';
 import TVLabsLogoDark from '../../../assets/images/tvlabs_logo_dark.svg';
 import WebmateLogo from '../../../assets/images/webmate_logo.svg';
 import WebmateLogoDark from '../../../assets/images/webmate_logo_dark.svg';
-import ZebrunnerLogoLight from '../../../assets/images/zebrunner_logo_light.svg';
 import ZebrunnerLogoDark from '../../../assets/images/zebrunner_logo_dark.svg';
+import ZebrunnerLogoLight from '../../../assets/images/zebrunner_logo_light.svg';
 import {SERVER_TYPES} from '../../../constants/session-builder.js';
 import {useTheme} from '../../../hooks/use-theme.jsx';
 import ServerTabAstrofarm from './ServerTabAstroFarm.jsx';
@@ -60,7 +60,6 @@ import ServerTabZebrunner from './ServerTabZebrunner.jsx';
 import styles from './ServerDetails.module.css';
 
 const providers = {
-/*
   [SERVER_TYPES.SAUCE]: {
     tab: ServerTabSauce,
     logos: {
@@ -201,7 +200,6 @@ const providers = {
       dark: null,
     },
   },
-*/
   [SERVER_TYPES.ZEBRUNNER]: {
     tab: ServerTabZebrunner,
     logos: {
@@ -210,6 +208,10 @@ const providers = {
     },
   },
 };
+
+// The Zebrunner build offers only its own cloud provider; the upstream ones stay defined above
+// so that upstream changes merge without conflicts.
+const ENABLED_PROVIDERS = [SERVER_TYPES.ZEBRUNNER];
 
 const ProviderLogo = ({serverType}) => {
   const {isDarkTheme} = useTheme();
@@ -224,7 +226,9 @@ const ProviderLogo = ({serverType}) => {
   return <img src={logo} />;
 };
 
-const CloudProviders = Object.entries(providers).reduce((acc, [serverType, provider]) => {
+const enabledProviders = Object.entries(providers).filter(([serverType]) => ENABLED_PROVIDERS.includes(serverType));
+
+const CloudProviders = enabledProviders.reduce((acc, [serverType, provider]) => {
   const logo = <ProviderLogo serverType={serverType} />;
 
   acc[serverType] = {

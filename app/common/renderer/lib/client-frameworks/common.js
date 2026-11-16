@@ -12,6 +12,20 @@ export default class CommonClientFramework {
     this.lastAssignedVar = null;
   }
 
+  // Java and .NET client boilerplates must define imports from client classes
+  // specific to the provided platform/automation name
+  getPackageAndClass(automationNameMap, platformNameMap, defaultPkgClass) {
+    const automationName = (this.caps['appium:automationName'] || this.caps.automationName)?.toLowerCase();
+    if (automationName && automationNameMap.has(automationName)) {
+      return automationNameMap.get(automationName);
+    }
+    const platformName = this.caps.platformName?.toLowerCase();
+    if (platformName && platformNameMap.has(platformName)) {
+      return platformNameMap.get(platformName);
+    }
+    return defaultPkgClass;
+  }
+
   getTapCoordinatesFromPointerActions(pointerActions) {
     const pointerMoveAction = pointerActions[DEFAULT_TAP.POINTER_NAME][0];
     return {x: pointerMoveAction.x, y: pointerMoveAction.y};
@@ -84,9 +98,19 @@ export default class CommonClientFramework {
     return varName;
   }
 
+  // Escape a value as a string literal valid in Python, JS, Java and C# (a superset of JSON),
+  // with the line separators JSON.stringify leaves raw also escaped, so a value taken from the
+  // app under test or the server cannot close the literal or start a new line.
+  quote(value) {
+    return JSON.stringify(String(value)).replace(
+      /[\u0085\u2028\u2029]/g,
+      (character) => `\\u${character.charCodeAt(0).toString(16).padStart(4, '0')}`,
+    );
+  }
+
   handleUnsupportedLocatorStrategy(strategy, locator) {
     return this.addComment(
-      `Code generation for locator strategy '${strategy}' (selector '${locator}') is not currently supported`,
+      `Code generation for locator strategy ${this.quote(strategy)} (selector ${this.quote(locator)}) is not currently supported`,
     );
   }
 

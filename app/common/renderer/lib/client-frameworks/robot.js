@@ -1,23 +1,79 @@
 import refractorRobot from 'refractor/robotframework';
 
+import {LOCATOR_STRATEGIES} from '../../constants/session-inspector.js';
 import CommonClientFramework from './common.js';
+
+// Characters with a short Robot escape: common whitespace and Robot syntax characters
+const ROBOT_ESCAPES = new Map([
+  ['\n', '\\n'],
+  ['\r', '\\r'],
+  ['\t', '\\t'],
+  ...Array.from('\\$@&%#=|', (character) => [character, `\\${character}`]),
+]);
 
 export default class RobotFramework extends CommonClientFramework {
   static readableName = 'Robot Framework';
   static refractorLang = 'robot';
   static refractorLib = refractorRobot;
 
-  getRobotVal(jsonVal) {
-    if (typeof jsonVal === 'boolean') {
+  // User strings must stay in one literal cell, not become Robot syntax or keywords.
+  escapeRobotString(value) {
+    if (value === '') {
+      return '${EMPTY}';
+    }
+    const characters = Array.from(value);
+    return characters
+      .map((character, index) => {
+        if (ROBOT_ESCAPES.has(character)) {
+          return ROBOT_ESCAPES.get(character);
+        }
+        // A single interior space is legal in a space-separated Robot cell.
+        if (
+          character === ' ' &&
+          index > 0 &&
+          index < characters.length - 1 &&
+          !/\s/.test(characters[index - 1]) &&
+          !/\s/.test(characters[index + 1])
+        ) {
+          return character;
+        }
+        const code = character.charCodeAt(0);
+        const isControl = code < 0x20 || (code >= 0x7f && code <= 0x9f);
+        if (!/\s/.test(character) && !isControl) {
+          return character;
+        }
+        const hex = code.toString(16).padStart(code <= 0xff ? 2 : 4, '0');
+        return `\\${code <= 0xff ? 'x' : 'u'}${hex}`;
+      })
+      .join('');
+  }
+
+  getRobotVal(jsonVal, variables = []) {
+    if (jsonVal === null) {
+      return '${None}';
+    } else if (typeof jsonVal === 'boolean') {
       return jsonVal ? '${True}' : '${False}';
     } else if (typeof jsonVal === 'number') {
       return `$\{${jsonVal}}`;
+    } else if (typeof jsonVal === 'object') {
+      const isList = Array.isArray(jsonVal);
+      const items = isList
+        ? jsonVal.map((value) => this.getRobotVal(value, variables))
+        : Object.entries(jsonVal)
+            .filter(([, value]) => value !== undefined)
+            .map(([key, value]) => `${this.escapeRobotString(key)}=${this.getRobotVal(value, variables)}`);
+      const variable = `$\{value${variables.length}}`;
+      variables.push(`${variable} =    Create ${isList ? 'List' : 'Dictionary'}    ${items.join('    ')}`);
+      return variable;
     }
-    return jsonVal;
+    return typeof jsonVal === 'string' ? this.escapeRobotString(jsonVal) : jsonVal;
   }
 
   wrapWithBoilerplate(code) {
-    const capsParams = Object.entries(this.caps).map(([k, v]) => `${k}=${this.getRobotVal(v)}`);
+    const variables = [];
+    const capsParams = Object.entries(this.caps).map(
+      ([k, v]) => `${this.escapeRobotString(k)}=${this.getRobotVal(v, variables)}`,
+    );
     return `# This sample code supports Appium Robot client >=2
 # pip install robotframework-appiumlibrary
 # Then you can paste this into a file and simply run with Robot
@@ -33,7 +89,8 @@ Test Teardown     Close Application
 
 *** Test Cases ***
 Test Case Name
-    Open Application    ${this.serverUrl}    ${capsParams.join('    ')}
+${this.indent(variables.join('\n'), 4)}
+    Open Application    ${this.escapeRobotString(this.serverUrl)}    ${capsParams.join('    ')}
 ${this.indent(code, 4)}
 `;
   }
@@ -43,23 +100,26 @@ ${this.indent(code, 4)}
   }
 
   codeFor_findAndAssign(strategy, locator, localVar /*, isArray*/) {
-    let suffixMap = {
-      xpath: 'xpath',
-      'accessibility id': 'accessibility_id',
-      id: 'id',
-      'class name': 'class',
-      name: 'name',
-      '-android uiautomator': 'android',
-      // '-android datamatcher': 'unsupported',
-      // '-android viewtag': 'unsupported',
-      '-ios predicate string': 'nsp',
-      '-ios class chain': 'chain',
+    const byMap = {
+      [LOCATOR_STRATEGIES.ID]: 'id',
+      [LOCATOR_STRATEGIES.XPATH]: 'xpath',
+      [LOCATOR_STRATEGIES.NAME]: 'name',
+      [LOCATOR_STRATEGIES.CLASS_NAME]: 'class',
+      [LOCATOR_STRATEGIES.ACCESSIBILITY_ID]: 'accessibility_id',
+      [LOCATOR_STRATEGIES.PREDICATE]: 'predicate',
+      [LOCATOR_STRATEGIES.CLASS_CHAIN]: 'chain',
+      [LOCATOR_STRATEGIES.UIAUTOMATOR]: 'android',
+      // [LOCATOR_STRATEGIES.TEXT]: 'not supported',
+      // [LOCATOR_STRATEGIES.VIEWTAG]: 'not supported',
+      // [LOCATOR_STRATEGIES.DATAMATCHER]: 'not supported',
+      // [LOCATOR_STRATEGIES.VIEWMATCHER]: 'not supported',
+      // [LOCATOR_STRATEGIES.WIN_UIAUTOMATION]: 'not supported',
     };
-    if (!suffixMap[strategy]) {
+    if (!byMap[strategy]) {
       return this.handleUnsupportedLocatorStrategy(strategy, locator);
     }
 
-    return `$\{${localVar}} =    Set Variable     ${suffixMap[strategy]}=${locator}`;
+    return `$\{${localVar}} =    Set Variable     ${byMap[strategy]}=${this.escapeRobotString(locator)}`;
   }
 
   codeFor_elementClick(varName, varIndex) {
@@ -71,7 +131,7 @@ ${this.indent(code, 4)}
   }
 
   codeFor_elementSendKeys(varName, varIndex, text) {
-    return `Input Text    $\{${this.getVarName(varName, varIndex)}}    ${text}`;
+    return `Input Text    $\{${this.getVarName(varName, varIndex)}}    ${this.escapeRobotString(text)}`;
   }
 
   codeFor_tap(varNameIgnore, varIndexIgnore, pointerActions) {
@@ -89,16 +149,21 @@ Tap With Positions    $\{100}    $\{positions}`;
   // Top-Level Commands
 
   codeFor_executeScriptNoArgs(scriptCmd) {
-    return `Execute Script    ${scriptCmd}`;
+    return `Execute Script    ${this.escapeRobotString(scriptCmd)}`;
   }
 
   codeFor_executeScriptWithArgs(scriptCmd, jsonArg, varAssignment = '') {
+    if (jsonArg[0] === null) {
+      return `${varAssignment}Execute Script    ${this.escapeRobotString(scriptCmd)}    $\{None}`;
+    }
+    const variables = [];
     // change the JSON object into a format accepted by Create Dictionary: a sequence of key=value
     const argsValuesStrings = Object.entries(jsonArg[0])
       .filter(([, v]) => v !== undefined)
-      .map(([k, v]) => `${k}=${this.getRobotVal(v)}`);
-    return `&{scriptArgument} =    Create Dictionary    ${argsValuesStrings.join('    ')}
-${varAssignment}Execute Script    ${scriptCmd}    $\{scriptArgument}`;
+      .map(([k, v]) => `${this.escapeRobotString(k)}=${this.getRobotVal(v, variables)}`);
+    variables.push(`&{scriptArgument} =    Create Dictionary    ${argsValuesStrings.join('    ')}`);
+    return `${variables.join('\n')}
+${varAssignment}Execute Script    ${this.escapeRobotString(scriptCmd)}    $\{scriptArgument}`;
   }
 
   codeFor_updateSettings() {
@@ -159,7 +224,7 @@ ${varAssignment}Execute Script    ${scriptCmd}    $\{scriptArgument}`;
   }
 
   codeFor_switchAppiumContext(varNameIgnore, varIndexIgnore, name) {
-    return `Switch To Context    ${name}`;
+    return `Switch To Context    ${this.escapeRobotString(name)}`;
   }
 
   // Device Interaction
@@ -203,7 +268,7 @@ ${varAssignment}Execute Script    ${scriptCmd}    $\{scriptArgument}`;
   // App Management
 
   codeFor_installApp(varNameIgnore, varIndexIgnore, app) {
-    return `Install App    ${app}`;
+    return `Install App    ${this.escapeRobotString(app)}`;
   }
 
   codeFor_isAppInstalled() {
@@ -211,15 +276,15 @@ ${varAssignment}Execute Script    ${scriptCmd}    $\{scriptArgument}`;
   }
 
   codeFor_activateApp(varNameIgnore, varIndexIgnore, app) {
-    return `Activate Application    ${app}`;
+    return `Activate Application    ${this.escapeRobotString(app)}`;
   }
 
   codeFor_terminateApp(varNameIgnore, varIndexIgnore, app) {
-    return `Terminate Application    ${app}`;
+    return `Terminate Application    ${this.escapeRobotString(app)}`;
   }
 
   codeFor_removeApp(varNameIgnore, varIndexIgnore, app) {
-    return `Remove Application    ${app}`;
+    return `Remove Application    ${this.escapeRobotString(app)}`;
   }
 
   codeFor_queryAppState() {
@@ -229,21 +294,21 @@ ${varAssignment}Execute Script    ${scriptCmd}    $\{scriptArgument}`;
   // File Transfer
 
   codeFor_pushFile(varNameIgnore, varIndexIgnore, pathToInstallTo, fileContentString) {
-    return `Push File    ${pathToInstallTo}    ${fileContentString}`;
+    return `Push File    ${this.escapeRobotString(pathToInstallTo)}    ${this.escapeRobotString(fileContentString)}`;
   }
 
   codeFor_pullFile(varNameIgnore, varIndexIgnore, pathToPullFrom) {
-    return `$\{file_base64} =    Pull File    ${pathToPullFrom}`;
+    return `$\{file_base64} =    Pull File    ${this.escapeRobotString(pathToPullFrom)}`;
   }
 
   codeFor_pullFolder(varNameIgnore, varIndexIgnore, folderToPullFrom) {
-    return `$\{folder_base64} =    Pull Folder    ${folderToPullFrom}`;
+    return `$\{folder_base64} =    Pull Folder    ${this.escapeRobotString(folderToPullFrom)}`;
   }
 
   // Web
 
   codeFor_navigateTo(varNameIgnore, varIndexIgnore, url) {
-    return `Go To Url    ${url}`;
+    return `Go To Url    ${this.escapeRobotString(url)}`;
   }
 
   codeFor_getUrl() {
@@ -275,7 +340,7 @@ ${varAssignment}Execute Script    ${scriptCmd}    $\{scriptArgument}`;
   }
 
   codeFor_switchToWindow(varNameIgnore, varIndexIgnore, handle) {
-    return `Switch To Window    ${handle}`;
+    return `Switch To Window    ${this.escapeRobotString(handle)}`;
   }
 
   codeFor_getWindowHandles() {

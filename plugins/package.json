@@ -1,6 +1,6 @@
 {
   "name": "appium-inspector-plugin",
-  "version": "2026.7.1",
+  "version": "2026.11.6",
   "description": "An app inspector for use with an Appium server",
   "keywords": [
     "appium"
@@ -33,11 +33,11 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@appium/base-plugin": "3.3.3"
+    "@appium/base-plugin": "3.3.6"
   },
   "devDependencies": {},
   "peerDependencies": {
-    "appium": "^3.0.0-beta.0"
+    "appium": "^3.0.0-beta.0 || ^4.0.0-beta.0"
   },
   "engines": {
     "node": "^20.19.0 || ^22.12.0 || >=24.0.0",

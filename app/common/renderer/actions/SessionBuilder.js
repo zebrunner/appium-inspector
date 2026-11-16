@@ -308,11 +308,6 @@ export function newSession(originalCaps, attachSessId = null) {
       logLevel: DEFAULT_SERVER_PROPS.logLevel,
     };
     if (username && accessKey) {
-      const authToken = btoa(`${username}:${accessKey}`);
-      serverOpts.headers = {
-        ...headers,
-        Authorization: `Basic ${authToken}`,
-      };
       serverOpts.user = username;
       serverOpts.key = accessKey;
     }

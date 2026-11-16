@@ -4,6 +4,7 @@ import {useTranslation} from 'react-i18next';
 import {INPUT} from '../../../constants/antd-types.js';
 import {PROVIDER_VALUES} from '../../../constants/session-builder.js';
 
+import builderStyles from '../SessionBuilder.module.css';
 import styles from './ServerDetails.module.css';
 
 const ServerTabZebrunner = ({server, setServerParam}) => {
@@ -20,6 +21,7 @@ const ServerTabZebrunner = ({server, setServerParam}) => {
           onChange={(e) => setServerParam('webDriverUrl', e.target.value)}
         />
       </Space.Compact>
+      <p className={builderStyles.localDesc}>{t('sessionZebrunnerWebDriverURLDescription')}</p>
       <div className={styles.serverDetailRow}>
         <div className={styles.serverInputField300px}>
           <Space.Compact block>
